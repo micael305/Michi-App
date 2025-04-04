@@ -1,12 +1,18 @@
 const api_key = 'live_Kuq30cHWHlp1gWjzq56GvZpaN3LFL5axykpIZB5HavHTJbjoAG6S87hqPjo9ePK0';
-const API_URL_RANDOM = `https://api.thecatapi.com/v1/images/search?limit=2&api_key=${api_key}`;
+const API_URL_RANDOM = `https://api.thecatapi.com/v1/images/search?limit=2`;
 const API_URL_FAVOURITES = `https://api.thecatapi.com/v1/favourites`;
-const API_URL_FAVOURITES_DELETE = (id) => `https://api.thecatapi.com/v1/favourites/api_key=${id}?${api_key}`;
+const API_URL_FAVOURITES_DELETE = (id) => `https://api.thecatapi.com/v1/favourites/api_key=${id}`;
 
 const spanError = document.getElementById('error');
 
 async function loadRandomMichis() {
-    const res = await fetch(API_URL_RANDOM);
+    const res = await fetch(API_URL_RANDOM, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': api_key
+        }
+    });
     const data = await res.json(); 
     if(res.status !== 200){
         spanError.innerText = `Error: ${res.status}`
@@ -30,10 +36,11 @@ async function loadFavouritesMichis() {
     const res = await fetch(API_URL_FAVOURITES, {
         method: 'GET',
         headers:{
-                'X-API-KEY': 'live_Kuq30cHWHlp1gWjzq56GvZpaN3LFL5axykpIZB5HavHTJbjoAG6S87hqPjo9ePK0'
+            'Content-Type': 'application/json',
+            'X-API-KEY': api_key
             }
     });
-    const data = await res.json();
+    const data = await res.json(); //pasar la response a json asi JS lo entiende como objetos JS
     if(res.status !== 200){
         spanError.innerText = 'Error: ' + res.status;
      }else{
@@ -69,9 +76,10 @@ async function  saveFavouriteMichi(id) {
     const res = await fetch(API_URL_FAVOURITES, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json' 
+            'Content-Type': 'application/json',
+            'X-API-KEY': api_key
         },
-        body: JSON.stringify ({ 
+        body: JSON.stringify ({ //para que el back lo entienda hacemos json stringify
             image_id: id 
         })
     })
@@ -85,7 +93,11 @@ async function  saveFavouriteMichi(id) {
 
 async function deleteFavouriteMichi(id) {
     const res = await fetch(API_URL_FAVOURITES_DELETE(id), {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': api_key
+        }
     })
     if(res.status !== 200){
         spanError.innerText = 'Error: ' + res.status;
@@ -98,5 +110,7 @@ async function deleteFavouriteMichi(id) {
 loadRandomMichis();
 loadFavouritesMichis();
 
-
+/*content-type sirve para especificar en que lenguaje para que frontend y backend
+se comuniquen. El back nos devolvera un error si no soporta el content-type por lo 
+cual debemos especificar un content type soportado por el backend*/
 

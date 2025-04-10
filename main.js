@@ -1,7 +1,8 @@
 const api_key = 'live_Kuq30cHWHlp1gWjzq56GvZpaN3LFL5axykpIZB5HavHTJbjoAG6S87hqPjo9ePK0';
 const API_URL_RANDOM = `https://api.thecatapi.com/v1/images/search?limit=2`;
 const API_URL_FAVOURITES = `https://api.thecatapi.com/v1/favourites`;
-const API_URL_FAVOURITES_DELETE = (id) => `https://api.thecatapi.com/v1/favourites/api_key=${id}`;
+const API_URL_FAVOURITES_DELETE = (id) => `https://api.thecatapi.com/v1/favourites/${id}`;
+const API_URL_UPLOAD = 'http://api.thecatapi.com/v1/images/upload?api_key=live_Kuq30cHWHlp1gWjzq56GvZpaN3LFL5axykpIZB5HavHTJbjoAG6S87hqPjo9ePK0';
 
 const spanError = document.getElementById('error');
 
@@ -40,7 +41,7 @@ async function loadFavouritesMichis() {
             'X-API-KEY': api_key
             }
     });
-    const data = await res.json(); //pasar la response a json asi JS lo entiende como objetos JS
+    const data = await res.json(); 
     if(res.status !== 200){
         spanError.innerText = 'Error: ' + res.status;
      }else{
@@ -79,7 +80,7 @@ async function  saveFavouriteMichi(id) {
             'Content-Type': 'application/json',
             'X-API-KEY': api_key
         },
-        body: JSON.stringify ({ //para que el back lo entienda hacemos json stringify
+        body: JSON.stringify ({ /
             image_id: id 
         })
     })
@@ -107,10 +108,32 @@ async function deleteFavouriteMichi(id) {
      }
 }
 
+async function uploadMichiPhoto() {
+    const form = document.getElementById('uploadingForm')
+    const formData = new FormData(form);
+  
+    console.log(formData.get('file'))
+  
+    const res = await fetch(API_URL_UPLOAD, {
+      method: 'POST',
+      headers: {
+        // 'Content-Type': 'multipart/form-data',
+      },
+      body: formData,
+    })
+    const data = await res.json();
+  
+    if (res.status !== 201) {
+      spanError.innerHTML = "Hubo un error: " + res.status + data.message;
+      console.log({data})
+    } else {
+      console.log('Foto de michi subida :)')
+      console.log({data})
+      console.log(data.url)
+      saveFavouriteMichi(data.id);
+    }
+  }
+
 loadRandomMichis();
 loadFavouritesMichis();
-
-/*content-type sirve para especificar en que lenguaje para que frontend y backend
-se comuniquen. El back nos devolvera un error si no soporta el content-type por lo 
-cual debemos especificar un content type soportado por el backend*/
 

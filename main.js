@@ -1,47 +1,34 @@
-const api_key = 'live_Kuq30cHWHlp1gWjzq56GvZpaN3LFL5axykpIZB5HavHTJbjoAG6S87hqPjo9ePK0';
-const API_URL_RANDOM = `https://api.thecatapi.com/v1/images/search?limit=2`;
-const API_URL_FAVOURITES = `https://api.thecatapi.com/v1/favourites`;
-const API_URL_FAVOURITES_DELETE = (id) => `https://api.thecatapi.com/v1/favourites/${id}`;
+const api = axios.create({
+    baseURL: 'https://api.thecatapi.com/v1'
+  });
+  api.defaults.headers.common['X-API-KEY'] = 'live_Kuq30cHWHlp1gWjzq56GvZpaN3LFL5axykpIZB5HavHTJbjoAG6S87hqPjo9ePK0';
+
 const API_URL_UPLOAD = 'http://api.thecatapi.com/v1/images/upload?api_key=live_Kuq30cHWHlp1gWjzq56GvZpaN3LFL5axykpIZB5HavHTJbjoAG6S87hqPjo9ePK0';
 
 const spanError = document.getElementById('error');
 
 async function loadRandomMichis() {
-    const res = await fetch(API_URL_RANDOM, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-API-KEY': api_key
-        }
-    });
-    const data = await res.json(); 
+    const res = await api.get('/images/search?limit=2');
+
     if(res.status !== 200){
-        spanError.innerText = `Error: ${res.status}`
+        spanError.innerText = `Error al obtener michis aleatorios: ${res.status}`
      }else{
         const img1 = document.getElementById('img1');
         const img2 = document.getElementById('img2');
         const btnRan1 = document.getElementById('btnRan1');
         const btnRan2 = document.getElementById('btnRan2');
 
-        img1.src = data[0].url;
-        img2.src = data[1].url;
+        img1.src = res.data[0].url;
+        img2.src = res.data[1].url;
 
-        btnRan1.onclick = () => saveFavouriteMichi(data[0].id);
-        btnRan2.onclick = () => saveFavouriteMichi(data[1].id);  
-        console.log(data);
+        btnRan1.onclick = () => saveFavouriteMichi(res.data[0].id);
+        btnRan2.onclick = () => saveFavouriteMichi(res.data[1].id);  
      }
-    
 }
 
 async function loadFavouritesMichis() {
-    const res = await fetch(API_URL_FAVOURITES, {
-        method: 'GET',
-        headers:{
-            'Content-Type': 'application/json',
-            'X-API-KEY': api_key
-            }
-    });
-    const data = await res.json(); 
+    const res = await api.get('/favourites');
+
     if(res.status !== 200){
         spanError.innerText = 'Error: ' + res.status;
      }else{
@@ -52,7 +39,7 @@ async function loadFavouritesMichis() {
         h2.appendChild(h2Text);
         section.appendChild(h2);
 
-        data.forEach(michi => { 
+        res.data.forEach(michi => { 
             const article = document.createElement('article');
             const img = document.createElement('img');
             const button = document.createElement('button');
@@ -69,23 +56,15 @@ async function loadFavouritesMichis() {
             button.onclick = () => deleteFavouriteMichi(michi.id);
         });
      }
-
-     console.log(data);
 }
 
 async function  saveFavouriteMichi(id) {
-    const res = await fetch(API_URL_FAVOURITES, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-API-KEY': api_key
-        },
-        body: JSON.stringify ({ /
-            image_id: id 
-        })
-    })
+    const res = await api.post('/favourites', {
+        image_id: id,
+    });
+
     if(res.status !== 200){
-        spanError.innerText = 'Error: ' + res.status;
+        spanError.innerText = 'Error al guardar michi en favoritos: ' + res.status;
      }else{
         console.log('Michi guardado de favoritos');
         loadFavouritesMichis();
@@ -93,13 +72,8 @@ async function  saveFavouriteMichi(id) {
 }
 
 async function deleteFavouriteMichi(id) {
-    const res = await fetch(API_URL_FAVOURITES_DELETE(id), {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-API-KEY': api_key
-        }
-    })
+    const res = await api.delete(`/favourites/${id}`);
+
     if(res.status !== 200){
         spanError.innerText = 'Error: ' + res.status;
      }else{
@@ -112,8 +86,6 @@ async function uploadMichiPhoto() {
     const form = document.getElementById('uploadingForm')
     const formData = new FormData(form);
   
-    console.log(formData.get('file'))
-  
     const res = await fetch(API_URL_UPLOAD, {
       method: 'POST',
       headers: {
@@ -125,7 +97,7 @@ async function uploadMichiPhoto() {
   
     if (res.status !== 201) {
       spanError.innerHTML = "Hubo un error: " + res.status + data.message;
-      console.log({data})
+      console.log(res)
     } else {
       console.log('Foto de michi subida :)')
       console.log({data})
